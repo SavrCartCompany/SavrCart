@@ -1,4 +1,5 @@
 # SavrCart
+![SavarCart 1920 x 600px Banner](https://github.com/user-attachments/assets/4443bb34-b350-4f4c-b03b-476dbe3f128a)
 
 SavrCart is a smart grocery budgeting app that helps users build cost-effective shopping lists using real-time store data and AI-powered suggestions. Built with SwiftUI and Firebase, SavrCart integrates Gemini AI and the Kroger API to provide a seamless and optimized grocery planning experience.
 
