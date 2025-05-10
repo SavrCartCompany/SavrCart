@@ -1,0 +1,256 @@
+import SwiftUI
+
+@main
+struct SavrCartApp: App {
+    var body: some Scene {
+        WindowGroup {
+            OnboardingWelcomeView()
+        }
+    }
+}
+
+// MARK: - Onboarding Flow
+
+struct OnboardingWelcomeView: View {
+    @Namespace private var onboardingNamespace
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color("Teal").ignoresSafeArea()
+                VStack(spacing: 24) {
+                    Spacer()
+                    
+                    Image("WelcomeIllustration")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 200)
+                    
+                    
+                    Spacer()
+                    NavigationLink(destination: AuthView()) {
+                        Text("Already have an account? Log In")
+                            .foregroundColor(.white)
+                            .underline()
+                    }
+                    NavigationLink(destination: BudgetFrequencyView(namespace: onboardingNamespace).transition(.move(edge: .trailing))) {
+                        Text("Get Started")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color("White"))
+                            .foregroundColor(Color("Teal"))
+                            .cornerRadius(12)
+                            .padding(.horizontal)
+                    }
+                }
+            }
+        }
+    }
+}
+struct BudgetFrequencyView: View {
+    var namespace: Namespace.ID
+    @State private var selected = ""
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Text("Let's get to know you!")
+                .font(.subheadline)
+                .foregroundColor(.gray)
+            Text("How often do you try to budget?")
+                .font(.title2).bold()
+                .multilineTextAlignment(.center)
+
+            ZStack(alignment: .bottom) {
+                Image("BudgetQuestionArt")
+                    .resizable()
+                    .scaledToFit()
+                    .padding(.bottom, -8)
+            }
+
+            VStack(spacing: 12) {
+                ForEach(["Every week", "Every month", "Only when necessary", "Rarely"], id: \.self) { option in
+                    NavigationLink(destination: MotivationView().transition(.move(edge: .trailing))) {
+                        Text(option)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color("LightGray"))
+                            .foregroundColor(Color("Teal"))
+                            .cornerRadius(10)
+                    }
+                }
+            }
+        }
+        .padding()
+    }
+}
+
+struct MotivationView: View {
+    var body: some View {
+        VStack(spacing: 8) {
+            Text("You're doing great so far")
+                .font(.subheadline)
+                .foregroundColor(.gray)
+            Text("What brought you to SavrCart?")
+                .font(.title2).bold()
+                .multilineTextAlignment(.center)
+
+            ZStack(alignment: .bottom) {
+                Image("MotivationQuestionArt")
+                    .resizable()
+                    .scaledToFit()
+                    .padding(.bottom, -8)
+            }
+
+            VStack(spacing: 12) {
+                ForEach(["Saving money", "Organizing grocery trips", "AI tools for shopping", "Curiosity"], id: \.self) { option in
+                    NavigationLink(destination: FeaturePreferenceView().transition(.move(edge: .trailing))) {
+                        Text(option)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color("LightGray"))
+                            .foregroundColor(Color("Teal"))
+                            .cornerRadius(10)
+                    }
+                }
+            }
+        }
+        .padding()
+    }
+}
+
+struct FeaturePreferenceView: View {
+    var body: some View {
+        VStack(spacing: 8) {
+            Text("Almost there!")
+                .font(.subheadline)
+                .foregroundColor(.gray)
+            Text("What feature would you like to start with?")
+                .font(.title2).bold()
+                .multilineTextAlignment(.center)
+
+            ZStack(alignment: .bottom) {
+                Image("FeaturePreferenceArt")
+                    .resizable()
+                    .scaledToFit()
+                    .padding(.bottom, -8)
+            }
+
+            VStack(spacing: 12) {
+                ForEach(["Grocery List Builder", "Budget Overview", "AI Shopping Suggestions"], id: \.self) { option in
+                    NavigationLink(destination: PolicyAgreementView().transition(.move(edge: .trailing))) {
+                        Text(option)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color("LightGray"))
+                            .foregroundColor(Color("Teal"))
+                            .cornerRadius(10)
+                    }
+                }
+            }
+        }
+        .padding()
+    }
+}
+
+// The rest of the code remains unchanged
+
+
+struct PolicyAgreementView: View {
+    @State private var agree = false
+    @State private var goNext = false
+
+    var body: some View {
+        VStack(spacing: 16) {
+            ProgressView(value: 1.0)
+                .accentColor(Color("Teal"))
+            Text("One last step")
+                .font(.subheadline)
+                .foregroundColor(.gray)
+            Text("Before you continue")
+                .font(.title2).bold()
+            Text("Please review and agree to our Terms of Service and Privacy Policy.")
+                .multilineTextAlignment(.center)
+                .padding()
+            Toggle("I agree to the Terms & Privacy Policy", isOn: $agree)
+                .padding()
+            NavigationLink(destination: OnboardingCompleteView().transition(.move(edge: .trailing)), isActive: $goNext) {
+                EmptyView()
+            }
+            Button("Continue") {
+                if agree { goNext = true }
+            }
+            .disabled(!agree)
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(agree ? Color("Teal") : Color.gray)
+            .foregroundColor(.white)
+            .cornerRadius(10)
+            .padding(.horizontal)
+        }
+        .padding()
+    }
+}
+
+struct OnboardingCompleteView: View {
+    var body: some View {
+        VStack(spacing: 24) {
+            Spacer()
+            Text("You're All Set!")
+                .font(.largeTitle).bold()
+            Text("Let’s help you shop smart and save more.")
+                .foregroundColor(.gray)
+                .multilineTextAlignment(.center)
+            Spacer()
+            NavigationLink(destination: AuthView()) {
+                Text("Continue")
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color("Teal"))
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+                    .padding(.horizontal)
+            }
+        }
+        .padding()
+    }
+}
+
+// MARK: - AuthView (Login / Sign Up)
+struct AuthView: View {
+    @State private var email = ""
+    @State private var password = ""
+    @State private var confirmPassword = ""
+    @State private var isBypassActive = true
+
+    var body: some View {
+        VStack(spacing: 16) {
+            TextField("Email", text: $email)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+            SecureField("Password", text: $password)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+            SecureField("Confirm Password", text: $confirmPassword)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+            Button(action: {
+                isBypassActive = true
+            }) {
+                Text("Sign Up / Login")
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color("Teal"))
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+            }
+            NavigationLink(destination: MainTabView(), isActive: $isBypassActive) {
+                EmptyView()
+            }
+            HStack {
+                Spacer()
+                Text("Continue with Apple")
+                Spacer()
+                Text("Continue with Google")
+                Spacer()
+            }
+            .foregroundColor(.gray)
+        }
+        .padding()
+    }
+}
