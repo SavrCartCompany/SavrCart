@@ -1,0 +1,17 @@
+### AI List Generator Prompt #####
+Create a grocery list for {prompt} under a total budget of ${budget}.
+Please consider these dietary preferences: {userPrefs}.
+Use ingredients available at Kroger stores near {storeLocation}.
+
+
+### Recipe Generator Prompt ###
+Suggest a recipe for a {mealType} that serves {servings} people.
+The meal should be {dietaryPrefs} and cost under ${budget}.
+Include a name, ingredients, and instructions. Prefer Kroger-sourced items.
+
+### AI Insight Prompt ###
+Review this grocery list: {itemList}.
+Generate smart savings suggestions under $5 and show where substitutions can reduce cost.
+Include healthier or budget alternatives where possible.
+
+
