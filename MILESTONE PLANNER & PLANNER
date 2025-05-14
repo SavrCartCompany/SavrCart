@@ -1,0 +1,134 @@
+== Milestones (Solo Developer – 3 Month Plan)
+
+=== Month 1: Core Foundation & MVP Features
+- Week 1–2:
+  - Set up SwiftUI project + CloudKit schema
+  - Implement sign-in (Apple, Google, Email)
+  - Create onboarding flow with profile, preferences, TOS/Privacy
+- Week 3:
+  - Build grocery list CRUD with Kroger API autocomplete
+  - Add mapping for Kroger location selection
+- Week 4:
+  - Implement budget engine (custom periods, subcategories)
+  - CoreML insights (threshold detection, over-budget flags)
+
+=== Month 2: UI Polish + AI Assistant (V1)
+- Week 5–6:
+  - Build insights and pie chart view
+  - Add in-list AI suggestions (rule-based only)
+  - Build standalone AI list generator (prompt-driven, local constraints)
+- Week 7:
+  - Add settings page with AI controls, dietary preferences, thresholds
+  - Add item alternatives (price comparison dropdown + red/green indicator)
+- Week 8:
+  - Begin implementing calendar-based planner (meal/budget sync)
+
+=== Month 3: UX Boost + Smart AI Hooks
+- Week 9–10:
+  - Add gamification (budget streaks, milestones)
+  - Build basic meal plan view + AI recipe prompt generator
+  - Add recipe view and AI-generated meal saving to lists
+- Week 11:
+  - Pantry tracker (start simple: text/checkbox list)
+  - Implement price watch (flagged item polling + notification UI)
+- Week 12:
+  - Final UI/UX polish
+  - Test all flows
+  - Prepare for TestFlight and App Store submission
+
+###############################################################################
+
+== Milestones
+
+=== Phase 1: Core MVP (4–6 weeks)
+- ✅ Project setup with SwiftUI, CloudKit, Poppins branding
+- ✅ Authentication via Apple, Google, Email
+- ✅ CloudKit schema implementation for users, lists, items, budgets
+- ✅ Basic onboarding (profile pic, personalization questions, policy acceptance)
+- ✅ Create/edit/delete/copy grocery lists
+- ✅ Add/delete/edit items using Kroger API
+- ✅ Budget engine with user-defined period and subcategories
+- ✅ Basic Insights: budget pie chart, cost impact detection
+- ✅ CoreML rule-based AI suggestions (e.g., over-budget flag)
+- ✅ Standalone AI List Generator (stubbed version with local rules)
+- ✅ Map-based Kroger store selector and localized pricing
+- ✅ Settings page: theme, AI config, dietary preferences, thresholds
+
+=== Phase 2: Enhanced AI + User Experience (3–4 weeks)
+- 🔄 AI smart substitutions with price comparison and dropdown selection
+- 🔄 Subcategory thresholds for budgets and enforcement
+- 🔄 AI recipes ("Dinner for 4 under $X") inside lists and standalone view
+- 🔄 Gamification features (budget streaks, savings goals)
+- 🔄 Meal planner view (week-based calendar)
+- 🔄 Enhanced personalization logic (learning from history)
+
+=== Phase 3: Advanced Utilities (4 weeks)
+- 🧠 Pantry tracker (inventory of owned items)
+- 🧠 Grocery route optimizer (store layout / map-based guidance)
+- 🧠 Price watch alerts with notifications
+- 🧠 Sustainability scoring of products/lists
+- 🧠 Saved grocery list templates
+- 🧠 Shared lists with family/group members
+
+=== Phase 4: Voice, Feedback & Scaling (2–3 weeks)
+- 🎤 SiriKit or voice command integration
+- 🎤 User recipe ratings and feedback collection
+- 🎤 Privacy enhancements and optional local-only mode
+- 🎤 Inference API toggle (for future OpenAI use)
+
+###############################################################################
+
+== Requirements
+
+.MUST Have
+- iOS app using SwiftUI
+- CloudKit for backend (storage + auth)
+- Sign-in via Apple, Google, and Email
+- Onboarding flow with:
+  - User profile picture upload
+  - Personalization questions (e.g., dietary, budgeting style)
+  - Terms and Privacy Policy agreement
+- Create/edit/delete/copy grocery lists
+- Add/edit/delete grocery items with Kroger autocomplete
+- Location-aware pricing (user selects Kroger store on map)
+- Budget creation:
+  - User-defined time period
+  - Subcategory support (e.g., by meal or item type)
+  - Thresholds per category, item, and total
+- Real-time spending tracker with red/green change indicators
+- Visual pie chart for spending breakdown
+- Smart AI insights (via CoreML) and suggestions
+- In-list AI suggestions and standalone AI List Generator
+- Recipe generation via AI ("Make a vegan dinner for 4 under $15")
+- Settings page (themes, AI behavior, thresholds, dietary prefs)
+
+.SHOULD Have
+- Animated branding and polished onboarding
+- Multiple UI themes and font customization
+- Profile view with avatar and editable preferences
+- Privacy Policy + Terms acceptance
+- Calendar integration:
+  - Schedule shopping trips
+  - Budget period resets/reminders
+- Gamification:
+  - Budget streaks
+  - Saving milestones
+- Meal plans created from saved recipes
+
+.COULD Have
+- Pantry tracker (inventory of owned items)
+- Shopping route optimizer using store layout
+- Family/household shared lists via iCloud or invite
+- Price watch alerts for item price drops
+- Sustainability scoring of items/lists
+- Grocery list templates (custom or AI-generated)
+- SiriKit or voice assistant integration
+- Recipe history and user feedback to personalize suggestions
+- Feedback loop for improving AI tips
+- Local-only mode fallback for CoreML-only environments
+
+.WON’T Have (MVP)
+- Non-grocery categories
+- Monetization features (in-app purchases, subscriptions)
+- Full offline support
+
