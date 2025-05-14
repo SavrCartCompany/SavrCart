@@ -1,21 +1,45 @@
-# Requirements
-brew install python
-pip install scikit-learn pandas coremltools
+# train_grocery_classifier.py
 
-# Training script outline (Python)
+import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
-from coremltools.converters.sklearn import convert
+import coremltools as ct
 
-# Example training data
-items = ["whole milk", "almond milk", "cheddar cheese", "banana", "chicken breast"]
-labels = ["dairy", "dairy-free", "dairy", "fruit", "protein"]
+# Sample training data (extend this!)
+data = {
+    "item": [
+        "whole milk", "cheddar cheese", "almond milk",
+        "banana", "apple", "chicken breast", "tofu", "oatmeal"
+    ],
+    "category": [
+        "dairy", "dairy", "dairy-free",
+        "fruit", "fruit", "protein", "plant-protein", "grain"
+    ]
+}
+
+df = pd.DataFrame(data)
+
+# Vectorize item names
+vectorizer = CountVectorizer()
+X = vectorizer.fit_transform(df["item"])
+y = df["category"]
 
 # Train model
-vectorizer = CountVectorizer()
-X = vectorizer.fit_transform(items)
-model = MultinomialNB().fit(X, labels)
+model = MultinomialNB()
+model.fit(X, y)
 
 # Convert to CoreML
-coreml_model = convert(model, input_features=["item"], output_feature_names=["category"])
+coreml_model = ct.converters.sklearn.convert(
+    model,
+    input_features=["item"],
+    output_feature_names=["category"]
+)
+
+# Add metadata
+coreml_model.author = "SavrCart AI System"
+coreml_model.license = "MIT"
+coreml_model.short_description = "Classifies grocery item names into categories"
+
+# Save model
 coreml_model.save("GroceryClassifier.mlmodel")
+print("✅ Model saved as GroceryClassifier.mlmodel")
