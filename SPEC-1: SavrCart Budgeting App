@@ -1,0 +1,365 @@
+= SPEC-1: SavrCart Budgeting App
+:sectnums:
+:toc:
+
+== Background
+
+Modern consumers are increasingly budget-conscious, especially in fluctuating economic conditions. Despite numerous budgeting apps in the market, very few integrate real-time grocery planning with cost-saving insights. SavrCart aims to fill this gap by combining budgeting tools with shopping list functionality and smart suggestions based on real-time product data via APIs like Kroger. The goal is to empower users to plan smarter grocery trips, manage budgets effectively, and make informed buying decisions directly from their iOS devices.
+
+== Requirements
+
+.MUST Have
+
+iOS app using SwiftUI
+
+CloudKit for backend (storage + auth)
+
+Sign-in via Apple, Google, and Email
+
+Onboarding flow with:
+
+User profile picture upload
+
+Personalization questions (e.g., dietary, budgeting style)
+
+Terms and Privacy Policy agreement
+
+Create/edit/delete/copy grocery lists
+
+Add/edit/delete grocery items with Kroger autocomplete
+
+Location-aware pricing (user selects Kroger store on map)
+
+Budget creation:
+
+User-defined time period
+
+Subcategory support (e.g., by meal or item type)
+
+Thresholds per category, item, and total
+
+Real-time spending tracker with red/green change indicators
+
+Visual pie chart for spending breakdown
+
+Smart AI insights (via CoreML) and suggestions
+
+In-list AI suggestions and standalone AI List Generator
+
+Recipe generation via AI ("Make a vegan dinner for 4 under $15")
+
+Settings page (themes, AI behavior, thresholds, dietary prefs)
+
+.SHOULD Have
+
+Animated branding and polished onboarding
+
+Multiple UI themes and font customization
+
+Profile view with avatar and editable preferences
+
+Privacy Policy + Terms acceptance
+
+Calendar integration:
+
+Schedule shopping trips
+
+Budget period resets/reminders
+
+Gamification:
+
+Budget streaks
+
+Saving milestones
+
+Meal plans created from saved recipes
+
+.COULD Have
+
+Pantry tracker (inventory of owned items)
+
+Shopping route optimizer using store layout
+
+Family/household shared lists via iCloud or invite
+
+Price watch alerts for item price drops
+
+Sustainability scoring of items/lists
+
+Grocery list templates (custom or AI-generated)
+
+SiriKit or voice assistant integration
+
+Recipe history and user feedback to personalize suggestions
+
+Feedback loop for improving AI tips
+
+Local-only mode fallback for CoreML-only environments
+
+.WON’T Have (MVP)
+
+Non-grocery categories
+
+Monetization features (in-app purchases, subscriptions)
+
+Full offline support
+
+== Method
+
+[plantuml]
+
+@startuml
+package "SavrCart iOS App" {
+[SwiftUI Views] --> [ViewModel Layer]
+[ViewModel Layer] --> [CloudKit Storage]
+[ViewModel Layer] --> [Kroger API Integration]
+[ViewModel Layer] --> [Budget Engine]
+[ViewModel Layer] --> [Insights Engine]
+}
+
+database "CloudKit" as CK
+CK --> [CloudKit Storage]
+
+cloud "Kroger API" as Kroger
+Kroger --> [Kroger API Integration]
+@enduml
+
+=== CloudKit Schema
+
+.CloudKit Record Types
+
+User
+
+userId: UUID
+
+email: String
+
+name: String
+
+preferences: Dictionary
+
+profilePicture: Asset
+
+GroceryList
+
+listId: UUID
+
+title: String
+
+createdAt: Date
+
+userRef: Reference (User)
+
+tags: [String]
+
+GroceryItem
+
+itemId: UUID
+
+listRef: Reference (GroceryList)
+
+name: String
+
+estimatedPrice: Double
+
+categoryTag: String
+
+krogerProductId: String
+
+quantity: Int
+
+isChecked: Bool
+
+Budget
+
+budgetId: UUID
+
+userRef: Reference (User)
+
+period: String
+
+amount: Double
+
+spentAmount: Double
+
+subcategories: Dictionary
+
+createdAt: Date
+
+AIInsight
+
+insightId: UUID
+
+userRef: Reference (User)
+
+generatedAt: Date
+
+tipText: String
+
+relevantItemId: Reference
+
+Recipe
+
+recipeId: UUID
+
+title: String
+
+ingredients: [String]
+
+instructions: String
+
+costEstimate: Double
+
+userRef: Reference (User)
+
+tags: [String]
+
+=== Budget Engine
+
+[plantuml]
+
+@startuml
+start
+:User creates/edits a budget with amount and date range;
+:App queries GroceryItems linked to user's lists;
+:Filter items by createdAt within budget's period;
+:Sum estimatedPrice * quantity;
+:Set spentAmount in Budget;
+if (spentAmount > amount) then (yes)
+:Show over-budget warning;
+endif
+stop
+@enduml
+
+=== AI Insights Engine (Hybrid)
+
+CoreML (On-Device) Tasks
+
+Categorize grocery items
+
+Flag over-budget thresholds
+
+Basic suggestions
+
+Cloud AI (Deferred)
+
+Prompt-driven insights
+
+Recipe and full list generation
+
+[plantuml]
+
+@startuml
+actor User
+User --> [Grocery List Module]
+[Grocery List Module] --> [CoreML Model]
+[Grocery List Module] --> [AI Insights Engine]
+[AI Insights Engine] --> [Local AI Inference]
+[AI Insights Engine] --> [Cloud Inference API] : optional
+[Cloud Inference API] --> [AIInsight Record]
+@enduml
+
+== Implementation
+
+Project Setup
+
+SwiftUI project
+
+CloudKit + iCloud capability
+
+Folder structure for modular development
+
+Authentication
+
+Apple, Google, Email Sign-in
+
+CloudKit-backed user profile creation
+
+Grocery Lists & Items
+
+Create/edit/delete/copy
+
+Add via Kroger API with map-based store pricing
+
+Budget Engine
+
+Budget creation with subcategories
+
+Spending tracker and visualizations
+
+Insights Engine
+
+CoreML-based insights
+
+In-list and global suggestions
+
+Recipe generator with AI
+
+Settings Page
+
+Themes, AI thresholds, dietary prefs
+
+Privacy and TOS display
+
+Calendar, Gamification, Recipes
+
+Budget reset scheduling
+
+Meal plan calendar
+
+Budget streaks and goal tracking
+
+Optional Enhancements
+
+Pantry mode, shared lists, voice input, sustainability scoring, price watch
+
+== Milestones
+
+=== Month 1: Core Foundation & MVP Features
+
+Auth + onboarding
+
+CloudKit models
+
+Grocery lists
+
+Map/store selector
+
+Budget engine (MVP)
+
+CoreML-based insights
+
+=== Month 2: Enhanced AI + User Experience
+
+AI suggestions with dropdown alternatives
+
+Budget subcategories + thresholds
+
+AI recipe view and list generator
+
+Calendar planning
+
+=== Month 3: UX Boost + Utilities
+
+Gamification system
+
+Pantry tracker
+
+Price watch alerts
+
+Final polish & App Store prep
+
+== Gathering Results
+
+User feedback from TestFlight
+
+Metrics on spending accuracy and list engagement
+
+AI suggestion acceptance rate
+
+Savings reported from substitutions
+
+Feature use (calendar, streaks, recipe AI)
+
+App Store analytics post-launch
+
