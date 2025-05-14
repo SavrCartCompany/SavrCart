@@ -1,0 +1,32 @@
+SavrCart/
+├── App/
+│   └── SavrCartApp.swift
+├── Resources/
+│   ├── Assets.xcassets
+│   ├── LaunchScreen.storyboard (if used)
+│   └── Fonts/
+├── Features/
+│   ├── Authentication/
+│   │   └── AuthViewModel.swift, SignInView.swift, etc.
+│   ├── Onboarding/
+│   ├── GroceryList/
+│   ├── Budget/
+│   ├── Insights/
+│   ├── AIListGenerator/
+│   ├── Recipes/
+│   ├── Pantry/
+│   ├── Settings/
+├── Core/
+│   ├── Models/
+│   ├── ViewModels/
+│   ├── Services/
+│   │   ├── CloudKitService.swift
+│   │   ├── KrogerAPIService.swift
+│   │   ├── CoreMLService.swift
+│   └── Extensions/
+├── MLModels/
+│   └── GroceryClassifier.mlmodel (or custom)
+├── Utilities/
+│   └── Constants.swift, Color+Theme.swift, Enums.swift
+├── Preview Content/
+│   └── PreviewData.swift
