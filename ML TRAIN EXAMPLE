@@ -1,0 +1,21 @@
+# Requirements
+brew install python
+pip install scikit-learn pandas coremltools
+
+# Training script outline (Python)
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from coremltools.converters.sklearn import convert
+
+# Example training data
+items = ["whole milk", "almond milk", "cheddar cheese", "banana", "chicken breast"]
+labels = ["dairy", "dairy-free", "dairy", "fruit", "protein"]
+
+# Train model
+vectorizer = CountVectorizer()
+X = vectorizer.fit_transform(items)
+model = MultinomialNB().fit(X, labels)
+
+# Convert to CoreML
+coreml_model = convert(model, input_features=["item"], output_feature_names=["category"])
+coreml_model.save("GroceryClassifier.mlmodel")
