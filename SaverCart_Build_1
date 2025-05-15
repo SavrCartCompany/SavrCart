@@ -1,0 +1,265 @@
+import SwiftUI
+
+// MARK: - Tab Stack (Bottom Nav Bar)
+struct ContentView: View {
+    init() {
+        // This removes the default background of the TabView’s UITabBar
+        UITabBar.appearance().backgroundColor = UIColor(named: "Primary")
+
+    }
+
+    var body: some View {
+        ZStack {
+            Color("LightGrey")
+                .ignoresSafeArea()
+
+            TabView {
+                HomeView()
+                    .tabItem {
+                        Image(systemName: "house.fill")
+                        Text("Home")
+                    }
+
+                ListsView()
+                    .tabItem {
+                        Image(systemName: "list.bullet")
+                        Text("Lists")
+                    }
+
+                SettingsView()
+                    .tabItem {
+                        Image(systemName: "gearshape.fill")
+                        Text("Settings")
+                    }
+            }
+            .tint(Color("Teal"))
+        }
+    }
+}
+
+
+
+struct CustomHeaderView: View {
+    var profileName: String
+    var logo: Image
+    var profilePicture: Image
+
+    var body: some View {
+        HStack {
+            // Logo
+            logo
+                .resizable()
+                .scaledToFit()
+                .frame(width: 140, height: 40)
+
+            Spacer()
+
+            // Action Buttons
+            HStack(spacing: 20) {
+                // Shopping Cart
+                Button(action: {
+                    print("Cart tapped")
+                }) {
+                    Image(systemName: "cart.fill")
+                        .resizable()
+                        .frame(width: 24, height: 24)
+                        .foregroundColor(Color("Teal"))
+                }
+
+                // Archive Button
+                Button(action: {
+                    print("Archive tapped")
+                }) {
+                    Image(systemName: "archivebox.fill")
+                        .resizable()
+                        .frame(width: 24, height: 24)
+                        .foregroundColor(Color("Teal"))
+                }
+
+                // Settings Button
+                Button(action: {
+                    print("Settings tapped")
+                }) {
+                    Image(systemName: "gearshape.fill")
+                        .resizable()
+                        .frame(width: 24, height: 24)
+                        .foregroundColor(Color("Teal"))
+                }
+
+                // Profile Picture
+                Button(action: {
+                    print("Profile tapped")
+                }) {
+                    profilePicture
+                        .resizable()
+                        .frame(width: 32, height: 32)
+                        .clipShape(Circle())
+                        .overlay(
+                            Circle()
+                                .stroke(Color("Teal"), lineWidth: 2)
+                        )
+                }
+            }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 16)
+        .background(Color("Primary"))
+
+    }
+}
+
+
+
+// MARK: - Sample Subviews
+struct HomeView: View {
+    var body: some View {
+        NavigationStack {
+          
+            CustomHeaderView(
+                           profileName: "Cameron",
+                           logo: Image("TextLogo"),
+                           profilePicture: Image("ProfilePicDefault")
+                       )
+
+                Spacer() // Replace with your main content
+            VStack {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        // Recent Lists
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Recent Lists")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .padding(.horizontal)
+
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 16) {
+                                    ForEach(0..<5) { index in
+                                        VStack(alignment: .leading, spacing: 8) {
+                                            Text("Grocery Run \(index + 1)")
+                                                .font(.headline)
+                                            Text("12 items • $52.30")
+                                                .font(.subheadline)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        .padding()
+                                        .background(Color("Primary"))
+                                        .cornerRadius(12)
+                                        .shadow(color: .gray.opacity(0.1), radius: 4, x: 0, y: 2)
+                                    }
+                                }
+                                .padding(.horizontal)
+                            }
+                        }
+
+                        // Smart Suggestions
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Smart Suggestions")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .padding(.horizontal)
+
+                            VStack(spacing: 12) {
+                                ForEach(0..<3) { _ in
+                                    HStack {
+                                        Image(systemName: "lightbulb")
+                                            .foregroundColor(Color("Teal"))
+                                            .frame(width: 24, height: 24)
+                                        VStack(alignment: .leading) {
+                                            Text("Try adding almond milk")
+                                                .font(.body)
+                                            Text("Based on your recent breakfast list")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        Spacer()
+                                    }
+                                    .padding()
+                                    .background(Color("Primary"))
+                                    .cornerRadius(10)
+                                    .shadow(color: .gray.opacity(0.05), radius: 2, x: 0, y: 1)
+                                    .padding(.horizontal)
+                                }
+                            }
+                        }
+
+                        // Your Budgets
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Your Budgets")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .padding(.horizontal)
+
+                            VStack(spacing: 16) {
+                                ForEach(0..<2) { index in
+                                    HStack {
+                                        VStack(alignment: .leading) {
+                                            Text("Weekly Budget")
+                                                .font(.headline)
+                                            Text("$120 / $150")
+                                                .font(.subheadline)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        Spacer()
+                                        ProgressView(value: 0.8)
+                                            .progressViewStyle(LinearProgressViewStyle(tint:Color("Teal")))
+                                            .frame(width: 100)
+                                    }
+                                    .padding()
+                                    .background(Color("Primary"))
+                                    .cornerRadius(12)
+                                    .shadow(color: .gray.opacity(0.05), radius: 2, x: 0, y: 1)
+                                    .padding(.horizontal)
+                                }
+                            }
+                        }
+
+                        Spacer(minLength: 32)
+                    }
+                    .padding(.top)
+                }
+            }
+
+        }
+    }
+}
+
+struct ListsView: View {
+    var body: some View {
+        NavigationStack {
+            CustomHeaderView(
+                           profileName: "Cameron",
+                           logo: Image("TextLogo"),
+                           profilePicture: Image("ProfilePicDefault")
+                       )
+            
+            Spacer()
+            VStack {
+                Text("Your Lists")
+                    .font(.largeTitle)
+            }
+        }
+    }
+}
+
+struct SettingsView: View {
+    var body: some View {
+        NavigationStack {
+            CustomHeaderView(
+                           profileName: "Cameron",
+                           logo: Image("TextLogo"),
+                           profilePicture: Image("ProfilePicDefault")
+                       )
+            
+            Spacer()
+            VStack {
+                Text("Settings")
+                    .font(.largeTitle)
+            }
+        }
+    }
+}
+
+#Preview {
+    ContentView()
+}
