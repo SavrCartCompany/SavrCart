@@ -1,0 +1,576 @@
+//
+//  ListView.swift
+//  Test
+//
+//  Created by Cameron Pearson on 5/15/25.
+//
+
+import SwiftUI
+import Foundation
+
+struct ListsView: View {
+    @State private var showNewListSheet = false
+    @State private var lists: [GroceryList] = []
+    @State private var searchQuery = ""
+    @State private var selectedList: GroceryList? = nil
+    @AppStorage("savedLists") private var savedListData: Data = Data()
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                CustomHeaderView(
+                    profileName: "Cameron",
+                    logo: Image("TextLogo"),
+                    profilePicture: Image("ProfilePicDefault")
+                )
+
+                Spacer(minLength: 16)
+
+                Button(action: {
+                    print("AI Generate List tapped")
+                }) {
+                    HStack {
+                        Image(systemName: "sparkles")
+                        Text("Generate List with AI")
+                            .fontWeight(.semibold)
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color("Teal"))
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                    .padding(.horizontal)
+                    .shadow(radius: 1)
+                }
+                .padding(.bottom, 8)
+
+                HStack {
+                    Text("Your Lists")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                    Spacer()
+                    Button(action: {
+                        showNewListSheet = true
+                    }) {
+                        Image(systemName: "plus")
+                    }
+                    .accessibilityLabel("Add new list")
+                }
+                .padding(.horizontal)
+
+                TextField("Search Lists", text: $searchQuery)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.horizontal)
+
+                ScrollView {
+                    VStack(spacing: 12) {
+                        ForEach(filteredLists.indices, id: \.self) { index in
+                            NavigationLink(
+                                destination: GroceryListDetailView(
+                                    list: $lists[index],
+                                    onSave: {
+                                        saveLists()
+                                    }
+                                )
+                            ) {
+                                SwipeToDeleteView {
+                                    GroceryListCard(list: lists[index])
+                                } onDelete: {
+                                    delete(lists[index])
+                                }
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                    }
+                    .padding(.top, 8)
+                }
+            }
+            .sheet(isPresented: $showNewListSheet) {
+                CreateListView { newList in
+                    lists.append(newList)
+                    saveLists()
+                }
+            }
+            .onAppear {
+                loadLists()
+            }
+            .onChange(of: lists) { _ in
+                saveLists()
+            }
+        }
+    }
+
+    var filteredLists: [GroceryList] {
+        if searchQuery.isEmpty {
+            return lists
+        } else {
+            return lists.filter { $0.name.localizedCaseInsensitiveContains(searchQuery) }
+        }
+    }
+
+    func delete(_ list: GroceryList) {
+        if let index = lists.firstIndex(where: { $0.id == list.id }) {
+            lists.remove(at: index)
+        }
+    }
+
+    func loadLists() {
+        if let decoded = try? JSONDecoder().decode([GroceryList].self, from: savedListData) {
+            lists = decoded
+        } else {
+            lists = sampleLists
+        }
+    }
+
+    func saveLists() {
+        if let encoded = try? JSONEncoder().encode(lists) {
+            savedListData = encoded
+        }
+    }
+}
+
+// MARK: - GroceryListDetailView
+
+struct GroceryListDetailView: View {
+    @Binding var list: GroceryList
+    var onSave: () -> Void
+
+    @State private var newItemName = ""
+    @State private var newItemPrice = ""
+    @State private var newItemQuantity = 1
+    @State private var isFetching = false
+    @State private var fetchFailed = false
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(list.name)
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+
+                    Text("Budget: $\(String(format: "%.2f", list.budgetAmount))")
+                        .foregroundColor(.gray)
+
+                    Text("Total: $\(String(format: "%.2f", list.totalCost))")
+                        .foregroundColor(list.totalCost <= list.budgetAmount ? .green : .red)
+                }
+                .padding(.horizontal)
+
+                List {
+                    ForEach(list.items.indices, id: \.self) { index in
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text(list.items[index].name)
+                                    .font(.headline)
+                                Text("Qty: \(list.items[index].quantity)")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Text("$\(String(format: "%.2f", list.items[index].price * Double(list.items[index].quantity)))")
+                        }
+                        .swipeActions {
+                            Button(role: .destructive) {
+                                list.items.remove(at: index)
+                                onSave()
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
+                    }
+                }
+                .frame(height: 300)
+
+                Divider()
+
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Add New Item")
+                        .font(.headline)
+
+                    TextField("Item Name", text: $newItemName)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+
+                    HStack {
+                        Text("Quantity:")
+                        Spacer()
+                        Picker("Quantity", selection: $newItemQuantity) {
+                            ForEach(1...20, id: \.self) {
+                                Text("\($0)").tag($0)
+                            }
+                        }
+                        .pickerStyle(.wheel)
+                        .frame(width: 100, height: 100)
+                        .clipped()
+                    }
+
+                    if isFetching {
+                        ProgressView("Searching Kroger...")
+                            .padding(.vertical, 6)
+                    }
+
+                    if fetchFailed {
+                        Text("Item not found. Please enter price manually.")
+                            .foregroundColor(.red)
+                        TextField("Price", text: $newItemPrice)
+                            .keyboardType(.decimalPad)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                    }
+
+                    Button(action: {
+                        if fetchFailed {
+                            addItemManually()
+                        } else {
+                            fetchAndAddItem()
+                        }
+                    }) {
+                        Label("Add Item", systemImage: "plus.circle.fill")
+                            .font(.headline)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color("Teal"))
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                    }
+                    .disabled(newItemName.isEmpty || (fetchFailed && Double(newItemPrice) == nil))
+                }
+                .padding(.horizontal)
+            }
+        }
+        .navigationTitle("List Details")
+        .padding(.top)
+    }
+
+    func fetchAndAddItem() {
+        isFetching = true
+        fetchFailed = false
+        print("🔄 Searching Kroger for: \(newItemName)")
+
+        KrogerAPIManager.shared.fetchProductInfo(for: newItemName) { name, price, category in
+            DispatchQueue.main.async {
+                isFetching = false
+                if let price = price {
+                    print("✅ Kroger found: \(name ?? "unknown") – $\(price) – \(category ?? "uncategorized")")
+                    let item = ListItem(
+                        name: name ?? newItemName,
+                        price: price,
+                        quantity: newItemQuantity,
+                        isPurchased: false,
+                        category: category ?? "Uncategorized"
+                    )
+                    list.items.append(item)
+                    resetFields()
+                    onSave()
+                } else {
+                    print("❌ Kroger API: No result found.")
+                    fetchFailed = true
+                }
+            }
+        }
+    }
+
+
+    func addItemManually() {
+        guard let price = Double(newItemPrice) else { return }
+        let item = ListItem(
+            name: newItemName,
+            price: price,
+            quantity: newItemQuantity,
+            isPurchased: false,
+            category: "Manual"
+        )
+        list.items.append(item)
+        resetFields()
+        onSave()
+    }
+
+    func resetFields() {
+        newItemName = ""
+        newItemPrice = ""
+        newItemQuantity = 1
+        fetchFailed = false
+    }
+}
+
+// MARK: - Other Views & Models
+
+struct GroceryListCard: View {
+    let list: GroceryList
+
+    var body: some View {
+        HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(list.name)
+                    .font(.headline)
+
+                Text("\(list.items.count) items • $\(String(format: "%.2f", list.totalCost))")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                Text("Budget: $\(String(format: "%.2f", list.budgetAmount))")
+                    .font(.footnote)
+                    .foregroundColor(.gray)
+            }
+
+            Spacer()
+
+            Text(budgetStatusText)
+                .font(.footnote)
+                .fontWeight(.semibold)
+                .foregroundColor(budgetStatusColor)
+        }
+        .padding()
+        .background(Color("Primary"))
+        .cornerRadius(10)
+        .shadow(color: .gray.opacity(0.1), radius: 2, x: 0, y: 1)
+        .padding(.horizontal)
+    }
+
+    private var budgetStatusText: String {
+        let difference = list.budgetAmount - list.totalCost
+        return difference >= 0 ? "+$\(String(format: "%.2f", difference))" : "-$\(String(format: "%.2f", abs(difference)))"
+    }
+
+    private var budgetStatusColor: Color {
+        list.totalCost <= list.budgetAmount ? .green : .red
+    }
+}
+
+struct SwipeToDeleteView<Content: View>: View {
+    let content: () -> Content
+    let onDelete: () -> Void
+
+    var body: some View {
+        content()
+            .swipeActions {
+                Button(role: .destructive, action: onDelete) {
+                    Label("Delete", systemImage: "trash")
+                }
+            }
+    }
+}
+
+struct CreateListView: View {
+    @Environment(\.dismiss) var dismiss
+    @State private var listName = ""
+    @State private var selectedBudget: Budget? = nil
+    @State private var description = ""
+    @State private var budgets: [Budget] = sampleBudgets
+
+    var onSave: (GroceryList) -> Void
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section(header: Text("List Info")) {
+                    TextField("List Name", text: $listName)
+                    Picker("Assign Budget", selection: $selectedBudget) {
+                        ForEach(budgets) { budget in
+                            Text(budget.name).tag(Optional(budget))
+                        }
+                        Text("Create New Budget...").tag(Optional<Budget>.none)
+                    }
+                    TextField("Description (optional)", text: $description)
+                }
+            }
+            .navigationTitle("New Grocery List")
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        let newList = GroceryList(
+                            name: listName,
+                            items: [],
+                            budgetID: selectedBudget?.id,
+                            budgetAmount: selectedBudget?.totalAmount ?? 0.0,
+                            description: description,
+                            dateCreated: Date()
+                        )
+                        onSave(newList)
+                        dismiss()
+                    }
+                    .disabled(listName.isEmpty)
+                }
+
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Models
+
+struct GroceryList: Identifiable, Codable, Hashable {
+    let id: UUID
+    var name: String
+    var items: [ListItem]
+    var budgetID: UUID?
+    var budgetAmount: Double
+    var description: String
+    var dateCreated: Date
+
+    var totalCost: Double {
+        items.reduce(0) { $0 + $1.price * Double($1.quantity) }
+    }
+
+    init(name: String, items: [ListItem], budgetID: UUID?, budgetAmount: Double, description: String, dateCreated: Date) {
+        self.id = UUID()
+        self.name = name
+        self.items = items
+        self.budgetID = budgetID
+        self.budgetAmount = budgetAmount
+        self.description = description
+        self.dateCreated = dateCreated
+    }
+}
+
+struct ListItem: Identifiable, Codable, Hashable {
+    let id = UUID()
+    var name: String
+    var price: Double
+    var quantity: Int
+    var isPurchased: Bool
+    var category: String
+}
+
+struct Budget: Identifiable, Codable, Hashable {
+    let id = UUID()
+    var name: String
+    var totalAmount: Double
+}
+
+let sampleBudgets: [Budget] = [
+    Budget(name: "Weekly Budget", totalAmount: 100),
+    Budget(name: "Monthly Budget", totalAmount: 300),
+]
+
+let sampleLists: [GroceryList] = [
+    GroceryList(name: "Grocery Run", items: [], budgetID: nil, budgetAmount: 100, description: "", dateCreated: Date())
+]
+
+// MARK: - API Manager
+
+class KrogerAPIManager {
+    static let shared = KrogerAPIManager()
+    
+    private let clientID = //VlientId
+    private let clientSecret = //Client Secrt
+    
+    private var accessToken: String?
+    private var tokenExpiration: Date?
+    
+    private func fetchAccessToken(completion: @escaping (String?) -> Void) {
+        // If token is still valid, use it
+        if let token = accessToken, let expiration = tokenExpiration, Date() < expiration {
+            completion(token)
+            return
+        }
+        
+        guard let url = URL(string: "https://api.kroger.com/v1/connect/oauth2/token") else {
+            completion(nil)
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        
+        let credentials = "\(clientID):\(clientSecret)"
+        let base64Credentials = Data(credentials.utf8).base64EncodedString()
+        
+        request.setValue("Basic \(base64Credentials)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        
+        let body = "grant_type=client_credentials&scope=product.compact"
+        request.httpBody = body.data(using: .utf8)
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data,
+                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let token = json["access_token"] as? String,
+                  let expiresIn = json["expires_in"] as? Double else {
+                completion(nil)
+                return
+            }
+            
+            self.accessToken = token
+            self.tokenExpiration = Date().addingTimeInterval(expiresIn)
+            completion(token)
+        }.resume()
+    }
+    
+    func fetchProductInfo(for itemName: String, completion: @escaping (String?, Double?, String?) -> Void) {
+        fetchAccessToken { token in
+            guard let token = token else {
+                print("❌ Missing token.")
+                completion(nil, nil, nil)
+                return
+            }
+            
+            var components = URLComponents(string: "https://api.kroger.com/v1/products")!
+            components.queryItems = [
+                URLQueryItem(name: "filter.term", value: itemName),
+                URLQueryItem(name: "filter.locationId", value: "01400943"),
+                URLQueryItem(name: "filter.limit", value: "10")
+            ]
+            
+            guard let url = components.url else {
+                print("❌ Failed to construct URL")
+                completion(nil, nil, nil)
+                return
+            }
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "GET"
+            request.setValue("application/json", forHTTPHeaderField: "Accept")
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    print("❌ Network error: \(error.localizedDescription)")
+                    completion(nil, nil, nil)
+                    return
+                }
+                
+                guard let data = data else {
+                    print("❌ No data received")
+                    completion(nil, nil, nil)
+                    return
+                }
+                
+                do {
+                    if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                       let products = json["data"] as? [[String: Any]] {
+                        
+                        for product in products {
+                            let name = product["description"] as? String ?? itemName
+                            
+                            if let items = product["items"] as? [[String: Any]],
+                               let firstItem = items.first,
+                               let priceData = firstItem["price"] as? [String: Any],
+                               let price = priceData["regular"] as? Double ?? priceData["promo"] as? Double {
+                                
+                                let category = product["category"] as? String ?? "Uncategorized"
+                                print("✅ Found product: \(name) – $\(price)")
+                                completion(name, price, category)
+                                return
+                            }
+                        }
+                        
+                        print("❌ No usable product with price found")
+                        completion(nil, nil, nil)
+                    } else {
+                        print("❌ Unexpected JSON format or no data array")
+                        completion(nil, nil, nil)
+                    }
+                } catch {
+                    print("❌ JSON parse error: \(error)")
+                    completion(nil, nil, nil)
+                }
+                
+            }.resume()
+        }
+    }
+}
